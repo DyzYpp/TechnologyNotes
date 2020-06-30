@@ -268,7 +268,7 @@ JMS是JavaEE体系中13中技术栈中的一种技术栈, 全称为 Java Message
 Session session = connection.createSession(参数1, Session.AUTO_ACKNOWLEDGE);
 ```
 
-ActiveMQ获取的Connection链接创建session会话时,**参数1**表示是否以事物的方式提交 **false** 不以事物的方式提交,**true** 以事物的方式提交,若不以事物的方式提交,默认自动提交,若以事物的方式提交,则发送消息后,必须在**session关闭前**手动提交到队列中.(代码如下)</u>
+ActiveMQ获取的Connection链接创建session会话时,**参数1**表示是否以事物的方式提交 **false** 不以事物的方式提交,**true** 以事物的方式提交,若不以事物的方式提交,默认自动提交,若以事物的方式提交,则发送消息后,必须在**session关闭前**手动提交到队列中.(代码如下)
 
 ```java
         /**
