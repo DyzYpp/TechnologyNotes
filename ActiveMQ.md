@@ -324,5 +324,43 @@ textMessage.acknowledge();
 | flase |  AUTO_ACKNOWLEDGE 自动   |                            |             消费者接受到消息后,自动进行签收操作              |
 | flase | CLIENT_ACKNOWLEDGE  手动 | textMessage.acknowledge(); | 消费者接受到消息后,得到消息对象,调用acknowledge()方法手动进行签收 |
 
+#### 2.5 消息事务模式下的消费者签收
 
+事务模式下,签收无所谓,不影响消费,只要有**commit**操作,不会出现重复消费的情况,具体来说,签收只对非事务模式下的消费者消费消息时有影响
+
+
+
+## 三、 Broker
+
+### 1. 什么是Broker
+
+**一个ActiveMQ服务器实例**
+
+Broker就是实现了用代码形式启动ActiveMQ将MQ**嵌入到Java代码**中,以便随时调用启动,再用的时候再去启动,这样节省资源,也保证了可靠性
+
+### 2. 根据不同的conf配置文件启动不同的ActiveMQ实例
+
+启动ActiveMQ实际的配置文件时是 ActiveMQ安装路径下的**conf文件夹下的activemq.xml文件**,根据不同的实例我们可以有多个xml配置文件.如何以不同的xml文件作为启动配置启动MQ服务呢
+
+在bin目录下 执行命令 
+
+**linux环境:**
+
+```
+./activemq start xbean:file:/xml位置文件路径
+```
+
+### 3. 嵌入式的Broker
+
+**在java中用代码启动嵌入式的Broker**
+
+```java
+	public static void main(String[] args) throws Exception {
+        //ActiveMQ也支持vm中通信基于嵌入式的Broker
+        BrokerService brokerService = new BrokerService();
+        brokerService.setUseJmx(true);
+        brokerService.addConnector("tcp://localhost:61616");
+        brokerService.start();
+    }
+```
 
