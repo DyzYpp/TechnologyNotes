@@ -364,3 +364,239 @@ Broker就是实现了用代码形式启动ActiveMQ将MQ**嵌入到Java代码**�
     }
 ```
 
+
+
+## 四、Spring整合ActiveMQ
+
+### 1. 添加相关依赖在pom.xml中
+
+```xml
+<!--        Active队JMS的支持,整合spring和ActiveMQ-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jms</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+
+        <!--        Active所需的pool支持-->
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-pool</artifactId>
+            <version>5.15.9</version>
+        </dependency>
+
+        <!--        spring的Aop相关的jar-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>4.3.23.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.6.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>2.1_2</version>
+        </dependency>
+```
+
+
+
+### 2. 配置applicationContext.xml配置文件
+
+```xml
+<!--    开启自动扫描的包-->
+    <context:component-scan base-package="Spring"/>
+
+<!--    配置生产者-->
+    <bean id="JmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+        <property name="connectionFactory">
+            <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+                <property name="brokerURL" value="tcp://47.105.63.60:61616"></property>
+            </bean>
+        </property>
+    </bean>
+
+<!--    队列目的地,点对点-->
+    <bean id="destinationQueue" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg index="0" value="spring-active-queue"/>
+    </bean>
+
+<!--    spring提供的JMS工具类,它可以进行消息发送,接受等-->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="JmsFactory"/>
+        <property name="defaultDestination" ref="destinationQueue"/>
+        <property name="messageConverter">
+            <bean class="org.springframework.jms.support.converter.SimpleMessageConverter"></bean>
+        </property>
+    </bean>
+```
+
+
+
+### 3. Spring整合ActiveMQ--- 队列
+
+------
+
+
+
+#### 3.1  生产者
+
+```java
+ 	@Autowired
+    private JmsTemplate jmsTemplate;
+
+    public static void main(String[] args) {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        SpringProduce produce = (SpringProduce) ctx.getBean("springProduce");
+
+        produce.jmsTemplate.send(session -> {
+            TextMessage textMessage = session.createTextMessage("spring和Active的整合case");
+            return textMessage;
+        });
+        System.out.println("------send task over");
+    }
+```
+
+
+
+#### 3.2  消费者
+
+```java
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        SpringConsumer consumer = (SpringConsumer) ctx.getBean("springConsumer");
+        String receiveValue = (String) consumer.jmsTemplate.receiveAndConvert();
+        System.out.println("消费者收到的消息" + receiveValue);
+```
+
+
+
+### 4. Spring整合ActiveMQ--- 主题
+
+**在spring框架中,只需更改applicationContext.xml配置文件即可**
+
+```xml
+<!--    主题目的地-->
+    <bean id="destinationTopic" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg index="0" value="spring-active-topic"/>
+    </bean>
+
+ 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="JmsFactory"/>
+        <property name="defaultDestination" ref="destinationTopic"/>
+        <property name="messageConverter">
+            <bean class="org.springframework.jms.support.converter.SimpleMessageConverter"></bean>
+        </property>
+    </bean>
+```
+
+
+
+### 5. 消费者不启动,直接通过配置监听完成
+
+```xml
+<!--    配置监听程序-->
+    <bean id="jmsContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="JmsFactory"/>
+        <!-- 要和jmsTemplate中的defaultDestination对应  队列都队列,主题都主题 -->
+        <property name="destination" ref="destinationTopic"/>
+        <property name="messageListener" ref="myMessageListener"/>
+    </bean>
+```
+
+
+
+## 五、 SpringBoot整合ActiveMQ
+
+### 1.yml配置
+
+```yml
+server:
+  port: 8888
+
+spring:
+  activemq:
+    broker-url: tcp://47.105.63.60:61616 #自己的MQ服务器地址
+    user: admin
+    password: admin
+  jms:
+    pub-sub-domain: false  # false = queue  true = topic
+
+# 自定义队列名称
+myqueue: springboot-activemq-queue
+```
+
+
+
+### 2. 将队列注入ioc容器
+
+```java
+@Component
+@EnableJms
+public class ConfigBean {
+
+    @Value("${myqueue}")
+    private String myQueueName;
+
+    @Bean
+    public Queue queue(){
+        return new ActiveMQQueue(myQueueName);
+    }
+}
+```
+
+
+
+### 3. 生产者
+
+```java
+@Component
+public class Produce {
+
+    @Autowired
+    private JmsMessagingTemplate jmsMessagingTemplate;
+
+    @Autowired
+    private Queue queue;
+
+    public void produceMsg(){
+        jmsMessagingTemplate.convertAndSend(queue,"------:"+UUID.randomUUID().toString().substring(0,6));
+    }
+}
+```
+
