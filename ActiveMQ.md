@@ -1,3 +1,5 @@
+
+
 # 								                                                  ActiveMQ
 
 ## 一、 ActiveMQ基础编码
@@ -473,8 +475,6 @@ Broker就是实现了用代码形式启动ActiveMQ将MQ**嵌入到Java代码**�
 
 ------
 
-
-
 #### 3.1  生产者
 
 ```java
@@ -580,9 +580,15 @@ public class ConfigBean {
 }
 ```
 
+使用**@bean**标签将队列名称为我们自己在yml文件中定义的**myqueue**所对应的值的队列添加到**spring的ioc容器中**.
 
 
-### 3. 生产者
+
+### 3. SpringBoot整合ActiveMQ---队列
+
+------
+
+#### 3.1 生产者
 
 ```java
 @Component
@@ -596,6 +602,102 @@ public class Produce {
 
     public void produceMsg(){
         jmsMessagingTemplate.convertAndSend(queue,"------:"+UUID.randomUUID().toString().substring(0,6));
+    }
+}
+```
+
+使用**JMSTemplate** 或者 **JmsMessagingTemplate** 的**convertAndSend()**方法向指定队列发送消息
+
+
+
+**定时投递**
+
+```java
+ 	@Scheduled(fixedDelay = 3000)
+    public void produceMsgScheduled(){
+        jmsMessagingTemplate.convertAndSend(queue,"------:"+UUID.randomUUID().toString().substring(0,6));
+    }
+```
+
+
+
+**使用注解@Scheduled开启spring定时任务, fixedDelay = 3000表示每三秒执行一次.**
+
+**使用spring的定时任务,需要在启动类上开启该功能,使用@EnableScheduling注解开启**
+
+
+
+------
+
+#### 3.2 消费者
+
+```java
+@Component
+public class Consumer {
+    @JmsListener(destination = "${myqueue}")
+    public void receive(TextMessage textMessage) throws JMSException{
+        System.out.println("消费者消费了消息:" + textMessage.getText());
+    }
+}
+```
+
+**使用@JmsListener 即可监听队列中是否接受到新的消息,且消费者不需要JMS支持,不需要向ioc容器注入Queue**
+
+
+
+### 4. SpringBoot整合ActiveMQ---主题
+
+------
+
+#### 4.1  生产者
+
+**向容器中添加主题**
+
+```java
+@Component
+public class ConfigBean {
+
+    @Value("${myTopic}")
+    private String topicName;
+
+    @Bean
+    public Topic topic(){
+        return new ActiveMQTopic(topicName);
+    }
+}
+```
+
+
+
+**使用JmsTemplate向指定主题发送消息**
+
+```java
+@Service
+public class Produce {
+
+    @Autowired
+    private JmsTemplate jmsTemplate;
+
+    @Autowired
+    private Topic topic;
+
+    @Scheduled(fixedDelay = 3000)
+    public void produceMsg(){
+        jmsTemplate.convertAndSend(topic,"springboot主题消息"+ UUID.randomUUID().toString().substring(0,6));
+    }
+}
+```
+
+
+
+#### 4.2 消费者
+
+```java
+@Service
+public class Consume {
+    @JmsListener(destination = "${myTopic}")
+    public void receive(TextMessage textMessage) throws JMSException {
+        System.out.println("消费者收到订阅的主题:"+ textMessage.getText());
     }
 }
 ```
