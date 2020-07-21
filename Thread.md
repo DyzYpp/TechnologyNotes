@@ -336,3 +336,95 @@ class Account{
 ```
 
 **get方法若不加synchronized关键字,则在线程休眠时,就会调用get方法读出balance数据.**
+
+------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# synchronized底层实现
+
+#### 1.简介
+
+**在JDK1.5中,synchronized的性能是比较差的,低效. 影响性能的主要原因是阻塞的实现,挂起线程和恢复线程的操作都需要转入内核态(通过操作系统)来完成,这些操作会给操作系统的并发性带来很大的压力.相比之下使用Java 提供的Lock对象，性能更高一些。**
+
+```java
+class MyThread extends Thread{
+    private Lock lock = new ReentrantLock();
+    private int ticket = 100;
+
+    @Override
+    public void run() {
+        for(int i = 0;i < 100;i++){
+            lock.lock();
+            if(this.ticket > 0){
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(Thread.currentThread().getName()+"还剩下"+this.ticket--+"票");
+            }
+            lock.unlock();
+        }
+    }
+}
+
+public class TestThread {
+    public static void main(String[] args) {
+        MyThread myThread = new MyThread();
+        new Thread(myThread,"黄牛1").start();
+        new Thread(myThread,"黄牛2").start();
+        new Thread(myThread,"黄牛3").start();
+    }
+}
+
+```
+
+**到JDK1.6之后,对于synchronized进行了优化,有了<span style="color:red">锁消除，锁粗化，偏向锁，自旋、轻量级锁，最后到重量级锁</span>.性能方面已经与Lock无很大差距.synchronized最大的特征就是在同一时刻只有一个线程能够获得对象监视器(monitor),从而进入到同步代码块或同步方法之中,即表现为(互斥性),这种方式保证了线程的安全.但是每次只能通过一个线程,所以在保证了安全的前提下,如何在提升程序的执行效率呢?** 
+
+**打个比方，去收银台付款，之前的方式是，大家都去排队，然后取纸币付款收银员找零，有的时候付款的时候在包里拿出钱包再去拿出钱，这个过程是比较耗时的，然后，支付宝解放了大家去钱包找钱的过程，现在只需要扫描下就可以完成付款了，也省去了收银员跟你找零的时间的了。同样是需要排队，但整个付款的时间大大缩短，是不是整体的效率变高速率变快了？这种优化方式同样可以引申到锁优化上，缩短获取锁的时间。**
+
+------
+
+#### 2. **CAS（Compare and Swap）**
+
+- **<span style="color:red">什么是CAS</span>**
+
+  **使用锁时,线程获取锁是一种悲观锁(jdk1.6之前叫内建锁)策略,假设每一次访问共享资源都会产生冲突,所以当线程获取锁时也会阻塞其他未获取到锁的线程.**
+
+  而CAS操作(又称为无锁操作),它是一种乐观锁策略,它假设所有线程访问共享资源的时候不会出现冲突,由于不会出现冲突就不会阻塞其他线程,因此线程也就不会出现阻塞停顿状态, 当然这种情况在实际应用中并不合理,所以当出现冲突时CAS是如何做的呢？
+
+  当冲突出现时,CAS（比较并替换）是这样操作的, 首先获取到访问资源的对应的锁,当没有竞争存在时,当前线程将它线程
+
