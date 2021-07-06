@@ -1,4 +1,36 @@
-#### 1. 数据库表哪些情况需要建立索引
+#### 1. 索引的相关命令
+
+show index from table_name;
+
+创建普通索
+
+alter table table_name add index index_name (column_list) ;
+
+创建唯一索引
+
+alter table table_name add unique index_name (column_list) ;
+
+创建主键索引
+
+alter table table_name add primary key index_name (column_list) ;
+
+创建普通索引
+
+create index index_name on table_name (column_list) ;
+
+创建唯一索引
+
+create unique index index_name on table_name (column_list) ;
+
+删除索引
+
+drop index index_name on table_name ; 
+
+alter table table_name drop index index_name ;
+
+ alter table table_name drop primary key ;
+
+#### 2. 数据库表哪些情况需要建立索引
 
 - 主键自动建立唯一索引
 
@@ -20,7 +52,7 @@
 
   
 
-#### 2. 数据库表哪些情况不需要建立索引
+#### 3. 数据库表哪些情况不需要建立索引
 
 - 表数据少
 
@@ -32,15 +64,15 @@
 
   
 
-#### 3. Explain
+#### 4. Explain
 
-##### 3.1 id  表的读取顺序
+##### 4.1 id  表的读取顺序
 
 - id相同 从上到下顺序执行
 - 如果是子查询，id不同，按id从大到小的顺序执行
 - id相同又不同，id值越大，优先级越高，越先执行，id相同的，可以认为是一组，从上往下顺序执行。
 
-##### 3.2 select_type 数据读取操作的操作类型
+##### 4.2 select_type 数据读取操作的操作类型
 
 - simple       简单的select查询，查询中不包含子查询或union
 - primary     查询中包含任何复杂的子部分，最外层查询被标记为
@@ -49,11 +81,11 @@
 - union          若第二个select出现在union之后，则被标记为union;若union包含在from子句的子查询中，外层select被标记为: derived
 - union result    从union表获取结果的select
 
-##### 3.3 table 表
+##### 4.3 table 表
 
 显示这一行数据是关于哪张表的
 
-##### 3.4 type 性能级别
+##### 4.4 type 性能级别
 
 1. system	表只有一行记录(相当于系统表)，是const类型的特例，平时不会出现，可以忽略不计
 
@@ -71,27 +103,27 @@
 
    **一般来说，sql查询效率至少到range级别。**
 
-##### 3.5 possible_keys 哪些索引可以使用
+##### 4.5 possible_keys 哪些索引可以使用
 
 查询涉及到的字段上若存在索引，则该索引将被列出，但不一定被查询实际使用
 
-##### 3.6 key  哪些索引实际被使用
+##### 4.6 key  哪些索引实际被使用
 
 实际使用的索引，如果为null，则没有使用到索引
 
 查询中若使用了覆盖索引，则该索引只出现在key中
 
-##### 3.7 key_length
+##### 4.7 key_length
 
 表示索引使用的字节数，可通过该列计算查询中使用的索引的长度，在不损失精度的情况下，长度越短越好，key_length显示的值是索引字段的最大可能长度，并并非实际长度，即key_length是根据表定义而得，不是通过表内检索出的。
 
-##### 3.8 ref 表之间的引用
+##### 4.8 ref 表之间的引用
 
 表示索引的具体信息，哪个库的哪张表的哪个字段。
 
-##### 3.9 rows 每张表都多少行被优化器查询
+##### 4.9 rows 每张表都多少行被优化器查询
 
-##### 3.10 Extra 包含不适合在其他列显示，但十分重要的信息
+##### 4.10 Extra 包含不适合在其他列显示，但十分重要的信息
 
 - Useing filesort  
 
@@ -109,7 +141,7 @@
 
   如果没有出现Useing where ， 表明索引用来读取数据而非执行查找动作。
 
-#### 4. 覆盖索引 Covering index
+#### 5. 覆盖索引 Covering index
 
 理解方式一：select的数据列只用从索引中就能获取，不必读取数据行，Mysql可以利用索引返回表中的字段，而不必根据索引再次读取数据文件，换句话说**查询列要被所建的索引覆盖。**
 
@@ -117,7 +149,7 @@
 
 **注意:** 	如果要使用覆盖索引，一定要注意select列表中只取需要的列，切记不可以select * ，因为如果将所有字段一起做索引会导致索引文件过大，查询性能下降
 
-#### 5. JOIN 语句的优化
+#### 6. JOIN 语句的优化
 
 多表联查，尽可能减少 JOIN 语句中的 NestedLoop 的循环总次数： "**永远用小结果集驱动大的结果集**"
 
@@ -127,7 +159,7 @@
 
 当无法保证被驱动表的 JOIN 条件字段被索引且内存资源充足的前提下，不要太吝惜 JOINBUFFER 的设置
 
-#### 6. 如何避免索引失效
+#### 7. 如何避免索引失效
 
 1. 尽量全值匹配，避免模糊查询
 2. 最左原则
