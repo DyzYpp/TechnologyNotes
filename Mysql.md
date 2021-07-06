@@ -172,3 +172,40 @@ alter table table_name drop index index_name ;
 9. 字符串不加单引号索引失效
 10. 少用or，用or连接会导致索引失效
 
+#### 7. Order By 的两种排序
+
+Mysql支持两种方式的排序，FileSort 和 Index 其中，Index效率高，是Mysql扫描索引本身完成的排序，FileSort方式效率低，
+
+Order By 满足两种情况，排序方式会使用 Index : 
+
+- Order By 语句使用索引最左前列
+- 使用 Where 子句与 Order By子句条件列组合满足最左前列
+
+FileSort 又有两种排序方式：
+
+- 单路排序 从磁盘读取查询需要的所有列，按照order by 列在Buffer对他们进行排序，然后扫描排序后的列表进行输出。它的效率更快一些，避免了第二次数据读取，并且把随机IO变成了顺序IO，但是 它会使用更多的空间，因为它把每一行都保存在内存中了。
+
+  单路排序存在的问题：
+
+  在mysql的 ini 配置文件中，sort_buffer数据所代表的容量。单路排序要比多路排序多占用很多空间，所以有可能取出的数据总大小超过了sort_buffer的数值，导致每次只能取sort_buffer容量大小的数据，进行排序，排序完在去sort_buffer容量大小的数据，进行多次IO。效率反而不如双路排序
+
+- 双路排序   Mysql4.1之前使用的是双路排序，扫描磁盘两次，最终得到数据。读取行指针和OrderBy的列，对他们进行排序，然后扫描已经排序好的列表，按照列表中的值重新从列表中读取对应的数据输出
+
+##### 提高Order By排序速度
+
+1. Order By 时，select * 是大忌，只查询需要的字段，这点非常重要，为什么呢
+
+   1.1  当查询的字段大小综合小于 max_length_for_sort_data ， 而且排序字段不是 text|blob 类型时，会用改进后的算法--单路排序，否则用老算法---多路排序。
+
+   1.2  两种算法的数据都有可能超出sort_buffer的容量，超出之后，会创建tmp文件进行合并排序，导致多次IO，但是用单路排序风险更大一些，所以要提高sort_buffer_size;
+
+2. 尝试提高 sort_buffer_size
+
+   不管用那种算法，提高这个参数都会提高效率，当然，要根据系统的能力去提高，因为这个参数是针对每个进程的。
+
+3. 尝试提高 max_length_for_sort_data
+
+   提高这个参数，会增加用改进算法的概率，但是如果设的太高，数据总容量超出sort_buffer_size的概率就会增大，明显症状是高的磁盘IO活动和低的处理器使用率
+
+   ![](../TechnologyNotes\img\imgFile\orderby索引使用.png)
+
