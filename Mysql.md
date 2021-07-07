@@ -209,3 +209,24 @@ FileSort 又有两种排序方式：
 
    ![](../TechnologyNotes\img\imgFile\orderby索引使用.png)
 
+#### 8. 锁
+
+1. **查看表上锁情况**
+
+   show open tables;  查看数据库中所有表
+
+   show open tables from '指定数据库'  查看指定数据库表上锁情况
+
+2. **上锁**
+
+   lock table 表名 (read 读锁)/(write 写锁);
+
+**简而言之：就是读锁会阻塞写，但是不会阻塞读，写锁会阻塞读和写**
+
+ 3. 表锁分析
+
+    show status like 
+
+    - Table_locks_immediate : 产生表级锁定的次数，表示可以立即获取锁的查询次数，每立即获取锁值加1
+    - Table_locks_waited：出现表级锁定竞争而发生等待的次数，（不能立即获取锁的次数，每等待一次值加1），值越大表明锁竞争越激烈
+    - Myisam引擎的读写锁调度是写优先，这是Myisam不适合作为主表引擎的原因，因为写锁后，其他线程不能做任何操作，更新会使查询很难得到锁，从而造成长时间堵塞;
