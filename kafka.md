@@ -90,4 +90,14 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 - Replica：副本，为保证集群中的某个节点发生故障时，该节点上的partition数据不丢失。且 kafka仍能够继续工作，kafka提供了副本机制，一个topic的每个分区都有若干个副本，一个leader和若干个follower
 - Leader：每个分区多个副本的 “主” ，生产者发送数据的对象，以及消费者消费数据的对象都是leader;
 - follower：每个分区多个副本的“从”，实时从leader中同步数据，保持和leader数据的同步，leader发生故障时，某个follower会成为新的follower。
-- 
+
+## 
+
+
+
+## 1.4 kafka命令行操作
+
+**启动服务**
+
+**bin/kafka-server-start.sh -daemon config/server.properties**   
+
