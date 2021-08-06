@@ -14,7 +14,11 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 
 - **同步处理**
 
+<<<<<<< HEAD
 ![](\img\imgFile\MessageQueue.png)
+=======
+![](img\imgFile\MessageQueue.png)
+>>>>>>> 88d794b385be8c31cda3c30d92354d9a68f73219
 
 ------
 
@@ -22,7 +26,11 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 
 - **异步处理**
 
+<<<<<<< HEAD
 ![](\img\imgFile\MessageQueueAsync.png)
+=======
+![](img\imgFile\MessageQueueAsync.png)
+>>>>>>> 88d794b385be8c31cda3c30d92354d9a68f73219
 
 
 
@@ -59,3 +67,45 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
    消息生产者生产消息发送到Queue中，然后消息消费者从Queue中取出并且消费消息，消息被消费以后，queue中不在存储，所以消息消费者不可能消费到已经被消费的消息，queue支持存在多个消费者，但对于一个消息而言，只会有一个消费者可以消费。
 
    
+
+![](img\imgFile\点对点模式.png)
+
+ 2. 发布/订阅模式（一对多，消费者消费数据后不会清除消息）
+
+    消息生产者（发布）将消息发布到 topic 中，同时有多个消费者订阅该topic，和点对点方式不同，发布到topic的消息会被所有订阅者消费。
+
+    1. 生产者主动推送
+    2. 消费者主动拉取
+
+<img src="img\imgFile\发布订阅模式.png"  />
+
+## 
+
+
+
+## 1.3 Kafka基础架构
+
+
+
+![](img\imgFile\kafka.png)
+
+- Producer : 消息生产者，就是向 kafka broker 发消息的客户端；
+- Consumer：消息消费者，就是向 kafka broker 取消息的客户端；
+- Consumer group (CG)：消费者组，由多个Consumer组成，消费者组内每个消费者负责消费不同分区的数据，一个分区只能由一个组内消费者消费；消费者组之间互不影响。所有的消费者都属于某个消费者组，即消费者组是逻辑上的一个订阅者
+- Broker：一台 kafka 服务器就是一个 broker，一个集群由多个broker组成，一个broker可以容纳多个topic；
+- Topic ：可以理解为一个队列，生产者和消费者面向的都是topic
+- Partition：为了实现扩展性，一个非常大的topic可以分布在多个broker上，一个topic可以分为多个partition，每个partition是一个 有序的队列。
+- Replica：副本，为保证集群中的某个节点发生故障时，该节点上的partition数据不丢失。且 kafka仍能够继续工作，kafka提供了副本机制，一个topic的每个分区都有若干个副本，一个leader和若干个follower
+- Leader：每个分区多个副本的 “主” ，生产者发送数据的对象，以及消费者消费数据的对象都是leader;
+- follower：每个分区多个副本的“从”，实时从leader中同步数据，保持和leader数据的同步，leader发生故障时，某个follower会成为新的follower。
+
+## 
+
+
+
+## 1.4 kafka命令行操作
+
+**启动服务**
+
+**bin/kafka-server-start.sh -daemon config/server.properties**   
+
