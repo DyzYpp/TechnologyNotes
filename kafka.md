@@ -14,11 +14,7 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 
 - **同步处理**
 
-<<<<<<< HEAD
-![](\img\imgFile\MessageQueue.png)
-=======
 ![](img\imgFile\MessageQueue.png)
->>>>>>> 88d794b385be8c31cda3c30d92354d9a68f73219
 
 ------
 
@@ -26,13 +22,9 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 
 - **异步处理**
 
-<<<<<<< HEAD
-![](\img\imgFile\MessageQueueAsync.png)
-=======
+
+
 ![](img\imgFile\MessageQueueAsync.png)
->>>>>>> 88d794b385be8c31cda3c30d92354d9a68f73219
-
-
 
 ------
 
