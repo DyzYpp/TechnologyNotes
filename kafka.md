@@ -89,7 +89,7 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 - Partition：为了实现扩展性，一个非常大的topic可以分布在多个broker上，一个topic可以分为多个partition，每个partition是一个 有序的队列。
 - Replica：副本，为保证集群中的某个节点发生故障时，该节点上的partition数据不丢失。且 kafka仍能够继续工作，kafka提供了副本机制，一个topic的每个分区都有若干个副本，一个leader和若干个follower
 - Leader：每个分区多个副本的 “主” ，生产者发送数据的对象，以及消费者消费数据的对象都是leader;
-- follower：每个分区多个副本的“从”，实时从leader中同步数据，保持和leader数据的同步，leader发生故障时，某个follower会成为新的follower。
+- follower：每个分区多个副本的“从”，实时从leader中同步数据，保持和leader数据的同步，leader发生故障时，某个follower会成为新的leader。
 
 ## 
 
@@ -100,4 +100,54 @@ Kafka是一个分布式的基于发布/订阅模式的消息队列 (Message Queu
 **启动服务**
 
 **bin/kafka-server-start.sh -daemon config/server.properties**   
+
+
+
+**创建Topic**
+
+​	**创建失败：**
+
+![](img\imgFile\kafka创建topic报错.png)
+
+​	出现如上报错：当前的可用kafka服务只有一个，但副本数大于可用服务数。创建topic时，副本数应小于当前可用kafka服务数。
+
+​	原因：待研究。
+
+​	**创建成功：**
+
+![](img\imgFile\成功创建topic.png)
+
+​	 --bootstrap-server localhost:9092  指定该topic创建在哪一个个kafka服务上
+
+​	 --replication-factor 指定副本数 需小于当前可用kafka服务数
+
+​	 --partitions  分区数
+
+​	 --topic topic名称
+
+**启动生产者**
+
+![](img\imgFile\启动生产者.png)
+
+​	 如上图所示，'my name is test'  即为发送的消息   kafka通常为集群部署，故在发送消息时，需要指定服务器。
+
+
+
+**启动消费者**
+
+![](D:\i-exercise\TechnologyNotes\img\imgFile\启动消费者.png)
+
+​	 --from-beginnging  当消费者宕机重启后，会继续消费宕机期间生产者发送的消息。理论上不会有消息丢失。
+
+​	
+
+**删除topic**
+
+![](img\imgFile\删除topic.png)
+
+
+
+**查看topic列表**
+
+![](img\imgFile\查看topic列表.png)
 
